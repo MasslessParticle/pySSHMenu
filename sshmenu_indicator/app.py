@@ -17,12 +17,12 @@ class App(object):
     
     def __init__(self):
         self.menu = gtk.Menu()
-        self.prefs = {} #TODO: Save preferences here.
+        self.prefs = {}
         self.has_key = False
         self.config_file = os.environ['HOME'] + "/.sshmenu"
                         
         self.menu.show()
-        self.menu_items = []
+        self.menus = []
         self.initialize_menu()
         
     def add_item(self, menu, menu_item):
@@ -35,33 +35,31 @@ class App(object):
             gtk_item = gtk.MenuItem(menu_item.display)
             gtk_item.set_submenu(new_menu)
             
-            self.add_options_from_preferences(new_menu)
+            self.add_options_from_preferences(menu_item)
                        
             for item in menu_item.items:
                 self.add_item(new_menu, item)
+            
+            self.menus.append(menu_item)
         else:
             gtk_item = gtk.MenuItem(menu_item.display)
-            gtk_item.connect("activate", menu_item.action)
+            gtk_item.connect("activate", menu_item.action, menu_item)
             
         gtk_item.show()
         menu.append(gtk_item)
-        self.menu_items.append(menu_item)
     
-    def add_options_from_preferences(self, menu):
+    def add_options_from_preferences(self, menu_item):
         #we add these to submenus depending on preferences
-            pref_added = False
+            items = []
             if self.prefs['global']['menus_open_tabs'] == 1:
-                self.add_item(menu, Item("Open all as tabs", 
-                                        action=self.open_all_tabs))
-                pref_added = True
+                items.append(Item("Open all as tabs", action=self.open_all_tabs))
             
             if self.prefs['global']['menus_open_all'] == 1:
-                self.add_item(menu, Item("Open all windows", 
-                                        action=self.open_all_windows))
-                pref_added = True
-            
-            if pref_added:
-                self.add_item(menu, Item('sep', kind=Item.SEPARATOR))
+                items.append(Item("Open all windows", action=self.open_all_windows))
+                           
+            if len(items) > 0:
+                items.append(Item('sep', kind=Item.SEPARATOR))
+                menu_item.items = items + menu_item.items
     
     def initialize_menu(self):
         self.get_preferences()
@@ -109,13 +107,31 @@ class App(object):
         err.run()
         err.destroy()
     
-    def open_all_tabs(self, sender):
-        print "open all tabs", sender
+    def open_all_tabs(self, sender, item):
+        for menu in self.menus:
+            if item in menu.items:
+                cmd = ['gnome-terminal']
+                for item in menu.items:
+                    if item.kind == Item.HOST:
+                        cmd.append("--tab")
+                        cmd.append("-t")
+                        cmd.append(item.display)
+                        cmd.append("--profile")
+                        cmd.append(item.profile)
+                        cmd.append()
+                        cmd.append("-e")
+                        cmd.append("ssh %s" % item.ssh_params)
+                subprocess.Popen(cmd, shell=False)
+                return                        
         
-    def open_all_windows(self, sender):
-        print "open all windows"
+    def open_all_windows(self, sender, item):
+        for menu in self.menus:
+            if item in menu.items:
+                for item in menu.items:
+                    if item.kind == Item.HOST:
+                        item.action(sender, item)
     
-    def add_ssh_key(self, sender):
+    def add_ssh_key(self, sender, item):
         if not self.has_key:
             try:
                 if os.path().exists(os.environ['SSH_AUTH_SOCK']):
@@ -137,12 +153,12 @@ class App(object):
     
     
     
-    def remove_ssh_key(self, sender):
+    def remove_ssh_key(self, sender, item):
         subprocess.Popen(['ssh-add', '-D'], stdout=subprocess.PIPE, 
                                             stderr=subprocess.PIPE)
         self.has_key = False
     
-    def preferences(self, sender):
+    def preferences(self, sender, item):
         #Todo build and save preferences menu
         print "Preferences Dialog"
                 

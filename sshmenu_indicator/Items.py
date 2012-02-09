@@ -10,11 +10,12 @@ class Item():
     Represents a menu item. Responsible for encapsulating a GTK menu items' 
     display characteristics and action.
     '''
-    MENU = 0
-    SEPARATOR = 1
-    ITEM = 2
+    MENU = "menu"
+    SEPARATOR = "separator"
+    ITEM = "item"
+    HOST = "host"
 
-    def __init__(self, display, action=None, kind=ITEM):
+    def __init__(self, display, action=None, kind=ITEM, data=None):
         '''
             display (str): how the menu item will look on the GTK menu
             action (callable): what happens when the menu item is clicked
@@ -22,6 +23,10 @@ class Item():
         self.kind = kind
         self.display = display
         self.action = action
+        self.data = data
+        
+    def __str__(self):
+        return "Item - type: %s Name: %s" % (self.kind, self.display)
 
 class MenuItem(Item):
     
@@ -29,21 +34,29 @@ class MenuItem(Item):
         Item.__init__(self, display, kind=Item.MENU)
         self.items = items
 
+    def __str__(self):
+        return "Item - type: %s Name: %s Items: %s" % (self.kind, self.display, 
+                                                       map(str, self.items))
+    
+    
 class HostItem(Item):
     
     def __init__(self, display, params):
-        Item.__init__(self, display)
-        self.action = self.create_action(params) 
-    
-    def create_action(self, params):
-        #TODO Add profiles and tabs
-        def ssh_command(sender):
+        Item.__init__(self, display, kind=Item.HOST)
+        self.profile = params['profile']
+        self.geometry = params['geometry']
+        self.ssh_params = params['sshparams']
+        self.action = self.create_action() 
+        
+    def create_action(self):
+        def ssh_command(sender, item):
             cmd = ['gnome-terminal',
                    '--title', self.display, 
-                   '--profile', params['profile'],
-                   '--geometry', params['geometry'],
-                    '-x','ssh', params['sshparams']]
+                   '--profile', self.profile,
+                   '--geometry', self.geometry,
+                    '-x','ssh', self.ssh_params]
             
-            subprocess.call(cmd, shell=False)
+            subprocess.Popen(cmd, shell=False,stdout=subprocess.PIPE, 
+                             stderr=subprocess.PIPE)
         
         return ssh_command
