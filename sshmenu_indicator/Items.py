@@ -41,12 +41,18 @@ class MenuItem(Item):
     
 class HostItem(Item):
     
-    def __init__(self, display, params):
+    def __init__(self, display, params=None):
         Item.__init__(self, display, kind=Item.HOST)
+        if not params:
+            params = {'profile' : '',
+                      'geometry' : '',
+                      'sshparams' : ''}
+            
         self.profile = params['profile']
         self.geometry = params['geometry']
-        self.ssh_params = params['sshparams']
-        self.action = self.create_action() 
+        self.ssh_params = params['sshparams'] 
+        self.enable_bcvi = False
+        self.action = self.create_action()
         
     def create_action(self):
         def ssh_command(sender, item):

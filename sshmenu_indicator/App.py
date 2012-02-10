@@ -10,9 +10,9 @@ import os
 import yaml
 import appindicator
 from Items import Item, HostItem, MenuItem
+from Dialog import ErrorDialog, SubmenuDialog, HostDialog
 
-
-class App(object):
+class App():
     '''Container for the overall app. Logically, this is the main menu'''
     
     def __init__(self):
@@ -78,7 +78,7 @@ class App(object):
             self.prefs = yaml.load(fin.read())
         except:
             if os.path.exists(self.config_file):
-                self.display_error("Unable to read config file")
+                ErrorDialog("Unable to read config file")
             else:
                 #TODO: create config file
                 pass
@@ -100,12 +100,9 @@ class App(object):
             item_list.append(menu_item)
         return item_list       
     
-    def display_error(self, error):
-        err = gtk.MessageDialog(type=gtk.MESSAGE_ERROR, 
-                                buttons=gtk.BUTTONS_OK,
-                                message_format=error)
-        err.run()
-        err.destroy()
+    def have_bcvi(self):
+        return len(filter(lambda x: os.path.exists(x + '/bcvi'), 
+                          os.environ['PATH'].split(':'))) > 0
     
     def open_all_tabs(self, sender, item):
         for menu in self.menus:
@@ -134,7 +131,8 @@ class App(object):
     def add_ssh_key(self, sender, item):
         if not self.has_key:
             try:
-                if os.path().exists(os.environ['SSH_AUTH_SOCK']):
+                ssh_auth = os.environ['SSH_AUTH_SOCK']
+                if os.path().exists(ssh_auth):
                     try:
                         subprocess.check_call(['ssh-add', '-l'], 
                                               stdout=subprocess.PIPE, 
@@ -144,23 +142,21 @@ class App(object):
                     except:
                         subprocess.Popen(['ssh-add'], stdout=subprocess.PIPE)
                 else:
-                    self.display_error("$SSH_AUTH_SOCK points to " + 
-                                   os.environ['SSH_AUTH_SOCK'] + ",\n but it" +
-                                   " does not exist!")
+                    ErrorDialog("$SSH_AUTH_SOCK points to " + ssh_auth 
+                                + ",\n but it does not exist!")
             except:
-                self.display_error("$SSH_AUTH_SOCK is not set." + 
-                                       "\nIs the ssh-agent running?")
-    
-    
-    
+                ErrorDialog("$SSH_AUTH_SOCK is not set.\nIs the ssh-agent running?")
+        
     def remove_ssh_key(self, sender, item):
         subprocess.Popen(['ssh-add', '-D'], stdout=subprocess.PIPE, 
                                             stderr=subprocess.PIPE)
         self.has_key = False
     
     def preferences(self, sender, item):
-        #Todo build and save preferences menu
-        print "Preferences Dialog"
+        foo = self.menus[1].items[5]
+        dialog = HostDialog(self, foo, None)
+        host = dialog.invoke()
+        print host
                 
 
 if __name__ == '__main__':
