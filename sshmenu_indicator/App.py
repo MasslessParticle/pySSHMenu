@@ -10,7 +10,7 @@ import os
 import yaml
 import appindicator
 from Items import Item, HostItem, MenuItem
-from Dialog import ErrorDialog, SubmenuDialog, HostDialog
+from Dialog import ErrorDialog, HostDialog
 
 class App():
     '''Container for the overall app. Logically, this is the main menu'''
@@ -64,6 +64,7 @@ class App():
     def initialize_menu(self):
         self.get_preferences()
         item_list = self.parse_items(self.prefs['items'])
+        
         for item in item_list:
             self.add_item(self.menu, item)
         
@@ -153,10 +154,14 @@ class App():
         self.has_key = False
     
     def preferences(self, sender, item):
+        for menu in self.menus:
+            print menu
+        '''
         foo = self.menus[1].items[5]
         dialog = HostDialog(self, foo, None)
         host = dialog.invoke()
-        print host
+        print host.profile
+        '''
                 
 
 if __name__ == '__main__':

@@ -4,6 +4,7 @@ Created on Feb 10, 2012
 @author: travis
 '''
 import gtk
+import gconf
 from Items import HostItem
 from Grabber import GeoGrabber
 
@@ -115,10 +116,17 @@ class HostDialog():
         self.geometry_entry.set_text(GeoGrabber.grab())
     
     def add_profile_input(self):
+        client = gconf.client_get_default()
+        list_key = '/apps/gnome-terminal/global/profile_list'
+        name_key = '/apps/gnome-terminal/profiles/%s/visible_name'
+        prof_names = [client.get_string(name_key % name) for name in 
+                      client.get_list(list_key, 'string')]
+                
         self.profile_entry = gtk.combo_box_new_text();
-        self.profile_entry.append_text("None")
-        self.profile_entry.append_text("foo")
-        self.profile_entry.append_text("bar")
+        self.profile_entry.append_text("< None> ")
+        for name in prof_names:
+            self.profile_entry.append_text(name)
+        
         self.profile_entry.set_active(0)
         self.add_input('Profile', widget=self.profile_entry)
     
