@@ -24,4 +24,3 @@ class GeoGrabber():
                 return geometry.group(1)
             else:
                 return ''
-        

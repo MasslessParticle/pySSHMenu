@@ -4,35 +4,55 @@ Created on Feb 6, 2012
 @author: travis
 '''
 
-import gtk
+from gi.repository import AppIndicator3, Gtk
 import subprocess
 import os
-import yaml
-import appindicator
-from Items import Item, HostItem, MenuItem
-from Dialog import ErrorDialog, HostDialog
+from Items import Item, SeparatorItem
+from Dialog import PreferencesDialog, ErrorDialog
+from Config import Config
 
 class App():
     '''Container for the overall app. Logically, this is the main menu'''
     
+    VERSION = '1.0'
+    SITE_URL = 'TBD'
+    ATTR_URL = 'http://sshmenu.sourceforge.net/'
+    
     def __init__(self):
-        self.menu = gtk.Menu()
-        self.prefs = {}
         self.has_key = False
-        self.config_file = os.environ['HOME'] + "/.sshmenu"
-                        
-        self.menu.show()
-        self.menus = []
+        self.config = Config(os.environ['HOME'] + "/.sshmenu")
+        self.initialize_indicator()
         self.initialize_menu()
+                
+    def initialize_indicator(self):
+        self.indicator = AppIndicator3.Indicator.new("SSH",
+                                "gnome-netstatus-tx",
+                                AppIndicator3.IndicatorCategory.APPLICATION_STATUS)
+        self.indicator.set_label('SSH', 'SSH')
+        self.indicator.set_status(AppIndicator3.IndicatorStatus.ACTIVE)
+    
+    def initialize_menu(self):
+        self.menu = Gtk.Menu()
+        self.menu.show()
         
+        self.menus = []
+        for item in self.config.menu_items:
+            self.add_item(self.menu, item)
+        
+        self.add_item(self.menu, SeparatorItem())
+        self.add_item(self.menu, Item("Add SSH Key", self.add_ssh_key))
+        self.add_item(self.menu, Item("Remove SSH Key", self.remove_ssh_key))
+        self.add_item(self.menu, Item("Preferences", self.preferences))
+        self.indicator.set_menu(self.menu)
+    
     def add_item(self, menu, menu_item):
         '''Add a MenuItem to the app'''
         
         if menu_item.kind == Item.SEPARATOR:
-            gtk_item = gtk.SeparatorMenuItem()
+            gtk_item = Gtk.SeparatorMenuItem()
         elif menu_item.kind == Item.MENU:
-            new_menu = gtk.Menu()
-            gtk_item = gtk.MenuItem(menu_item.display)
+            new_menu = Gtk.Menu()
+            gtk_item = Gtk.MenuItem(menu_item.display)
             gtk_item.set_submenu(new_menu)
             
             self.add_options_from_preferences(menu_item)
@@ -42,69 +62,26 @@ class App():
             
             self.menus.append(menu_item)
         else:
-            gtk_item = gtk.MenuItem(menu_item.display)
+            gtk_item = Gtk.MenuItem(menu_item.display)
             gtk_item.connect("activate", menu_item.action, menu_item)
             
         gtk_item.show()
         menu.append(gtk_item)
     
     def add_options_from_preferences(self, menu_item):
-        #we add these to submenus depending on preferences
-            items = []
-            if self.prefs['global']['menus_open_tabs'] == 1:
-                items.append(Item("Open all as tabs", action=self.open_all_tabs))
-            
-            if self.prefs['global']['menus_open_all'] == 1:
-                items.append(Item("Open all windows", action=self.open_all_windows))
-                           
-            if len(items) > 0:
-                items.append(Item('sep', kind=Item.SEPARATOR))
-                menu_item.items = items + menu_item.items
-    
-    def initialize_menu(self):
-        self.get_preferences()
-        item_list = self.parse_items(self.prefs['items'])
+        items = []
+        if self.config.get_global('menus_open_tabs') == 1:
+            items.append(Item("Open all as tabs", action=self.open_all_tabs))
         
-        for item in item_list:
-            self.add_item(self.menu, item)
-        
-        self.add_item(self.menu, Item("Seperator", kind=Item.SEPARATOR))
-        self.add_item(self.menu, Item("Add SSH Key", self.add_ssh_key))
-        self.add_item(self.menu, Item("Remove SSH Key", self.remove_ssh_key))
-        self.add_item(self.menu, Item("Preferences", self.preferences))
-    
-    def get_preferences(self):
-        try:
-            fin = open(self.config_file)
-            self.prefs = yaml.load(fin.read())
-        except:
-            if os.path.exists(self.config_file):
-                ErrorDialog("Unable to read config file")
-            else:
-                #TODO: create config file
-                pass
-            
-    def parse_items(self, items):
-        item_list = []
-        for item in items:
-            if item['type'] == 'separator':
-                menu_item = Item('sep', kind=Item.SEPARATOR);
-            elif item['type'] == 'menu':
-                menu_item = MenuItem(item['title'])
-                menu_items = self.parse_items(item['items'])
-                menu_item.items = menu_items                 
-            else:
-                params = dict((k,v) for k,v in item.iteritems() 
-                              if k != 'title' and k != 'type')
-                menu_item = HostItem(item['title'], params)
-            
-            item_list.append(menu_item)
-        return item_list       
-    
-    def have_bcvi(self):
-        return len(filter(lambda x: os.path.exists(x + '/bcvi'), 
-                          os.environ['PATH'].split(':'))) > 0
-    
+        if self.config.get_global('menus_open_all') == 1:
+            items.append(Item("Open all windows", action=self.open_all_windows))
+                       
+        if len(items) > 0:
+            items.append(SeparatorItem())
+            for item in items:
+                item.show_in_tree = False
+            menu_item.items = items + menu_item.items
+          
     def open_all_tabs(self, sender, item):
         for menu in self.menus:
             if item in menu.items:
@@ -116,7 +93,6 @@ class App():
                         cmd.append(item.display)
                         cmd.append("--profile")
                         cmd.append(item.profile)
-                        cmd.append()
                         cmd.append("-e")
                         cmd.append("ssh %s" % item.ssh_params)
                 subprocess.Popen(cmd, shell=False)
@@ -143,8 +119,9 @@ class App():
                     except:
                         subprocess.Popen(['ssh-add'], stdout=subprocess.PIPE)
                 else:
-                    ErrorDialog("$SSH_AUTH_SOCK points to " + ssh_auth 
-                                + ",\n but it does not exist!")
+                    ErrorDialog("$SSH_AUTH_SOCK points to " + 
+                                ssh_auth + 
+                                ",\n but it does not exist!")
             except:
                 ErrorDialog("$SSH_AUTH_SOCK is not set.\nIs the ssh-agent running?")
         
@@ -154,24 +131,12 @@ class App():
         self.has_key = False
     
     def preferences(self, sender, item):
-        for menu in self.menus:
-            print menu
-        '''
-        foo = self.menus[1].items[5]
-        dialog = HostDialog(self, foo, None)
-        host = dialog.invoke()
-        print host.profile
-        '''
-                
+        dialog = PreferencesDialog(self, self.config);
+        if dialog.invoke():
+            self.initialize_menu()
+
 
 if __name__ == '__main__':
-    ind = appindicator.Indicator("SSH Menu", "gnome-netstatus-tx",
-                                 appindicator.CATEGORY_APPLICATION_STATUS)
-    ind.set_label("SSH")
-    ind.set_status(appindicator.STATUS_ACTIVE)
-    
-    app = App()
-    ind.set_menu(app.menu)
-    
-    gtk.main()
+    app = App()    
+    Gtk.main()
     
