@@ -1,3 +1,4 @@
+#!/usr/bin/python
 '''
 @author: Travis Patterson
 @copyright: 2012 Travis PAtterson
@@ -140,6 +141,7 @@ class App():
         
     def open_all_windows(self, sender, item):
         '''Open all menu items in the menu or submenu as seperate windows'''
+        
         for menu in self.menus:
             if item in menu.items:
                 for item in menu.items:
@@ -195,12 +197,15 @@ class Config():
       settings
     * writing the config file if changes are made via the preferences dialog
     '''
+    
     def __init__(self, config_file):
         '''
         Takes:
             config_file (str): Path to the config file. ~/.sshmenu by default
         '''
         self.preferences = {}
+        self.menu_items = []
+        self.globals = {}
         self.config_file = config_file
         self.load_config()        
     
@@ -212,14 +217,12 @@ class Config():
             self.preferences = yaml.load(fin.read())
             self.menu_items = self.parse_items(self.preferences['items'])
             self.globals = self.preferences['global']
-            
+            fin.close()
         except:
             if os.path.exists(self.config_file):
                 ErrorDialog("Unable to read config file")
             else:
-                self.save();
-        finally:
-            fin.close()            
+                self.save(); #Config file does not yet exist... make one.          
        
     def parse_items(self, items):
         '''Parse the items yaml into Item objects'''
@@ -319,6 +322,7 @@ class Item():
 
     def __init__(self, display, action=None, kind=ITEM, show_in_tree=True):
         '''
+        Takes:
             display (str): how the menu item will look on the GTK menu
             action (callable): what happens when the menu item is clicked
             kind (str): Item Type
@@ -444,9 +448,7 @@ class SeparatorItem(Item):
 
 
 class ErrorDialog():
-    '''
-    A Simple dialog for displaying errors
-    '''
+    '''A Simple dialog for displaying errors'''
     
     def __init__(self, error):
         '''
@@ -473,6 +475,7 @@ class PreferencesDialog():
     Two additional tabs provide access to global option settings and the
     'About' box.
     '''
+    
     ITEM_COLUMN = 0
     
     def __init__(self, app, config):
