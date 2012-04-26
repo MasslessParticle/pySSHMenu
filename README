@@ -62,8 +62,8 @@ Installation
 ------------
 1) Install PyYaml if it's not already
 2) Download App.py
-3) Make it executable 
-4) Copy App.py to /usr/local/bin
+3) Copy App.py to /usr/local/bin
+4) chmod 755
 5) Launch App.py
 6) Optional: add it to the Gnome startup so it starts on login
  

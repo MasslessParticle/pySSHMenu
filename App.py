@@ -416,6 +416,12 @@ class MenuItem(Item):
     def __str__(self):
         return "Item - type: %s Name: %s Items: %s" % (self.kind, self.display, 
                                                        map(str, self.items))
+    
+    def has_items(self):
+        for item in self.items:
+            if item.show_in_tree:
+                return True
+        return False
         
     def to_yaml(self):
         '''Create YAML representation of this Item'''
@@ -772,8 +778,7 @@ class PreferencesDialog():
         
         if treeiter:
             selected = model[treeiter][PreferencesDialog.ITEM_COLUMN]
-            self.selected = selected
-            
+                        
             if selected.kind == Item.HOST:
                 self.button['edit'].set_sensitive(True)
                 self.button['copy'].set_sensitive(True)
@@ -781,8 +786,7 @@ class PreferencesDialog():
             elif selected.kind == Item.MENU:
                 self.button['edit'].set_sensitive(True)
                 self.button['copy'].set_sensitive(False)
-                can_delete = len(selected.items) == 0
-                self.button['del'].set_sensitive(can_delete)
+                self.button['del'].set_sensitive(not selected.has_items())
             elif selected.kind == Item.SEPARATOR:
                 self.button['edit'].set_sensitive(False)
                 self.button['copy'].set_sensitive(False)
@@ -972,6 +976,15 @@ class PreferencesDialog():
         
         model, treeiter = self.view.get_selection().get_selected()
         if treeiter:
+            item = self.model[treeiter][PreferencesDialog.ITEM_COLUMN]
+            parent = self.model.iter_parent(treeiter)
+                        
+            if parent:
+                parentitem = self.model[parent][PreferencesDialog.ITEM_COLUMN]
+                if parentitem.kind == Item.MENU:               
+                    if item in parentitem.items:
+                        parentitem.items.remove(item)
+            
             model.remove(treeiter)
 
    
