@@ -39,9 +39,9 @@ designed to be run solely as an AppIndicator in Gnome.
 
 There are some slight feature differences as well:
 	
-	- pySSHMenu does not have the option to "show text entry next to the menu 
-  	  button." This is something that doesn't make sense in the context of an
-  	  AppIndicator
+    - pySSHMenu does not have the option to "show text entry next to the menu 
+      button." This is something that doesn't make sense in the context of an
+      AppIndicator
   	
     - pySSHMenu does not have the ability to "hide button border." Again this
       doesn't make sense in the context of an AppIndicator
