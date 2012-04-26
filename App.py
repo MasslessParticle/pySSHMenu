@@ -45,7 +45,7 @@ class App():
     '''
     
     VERSION = '1.0'
-    SITE_URL = 'TBD'
+    SITE_URL = 'https://github.com/MasslessParticle/pySSHMenu'
     ATTR_URL = 'http://sshmenu.sourceforge.net/'
     
     def __init__(self):
