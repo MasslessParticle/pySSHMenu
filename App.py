@@ -418,6 +418,8 @@ class MenuItem(Item):
                                                        map(str, self.items))
     
     def has_items(self):
+	'''Determine whether or not this menu has child items'''
+
         for item in self.items:
             if item.show_in_tree:
                 return True
