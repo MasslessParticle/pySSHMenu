@@ -22,7 +22,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from gi.repository import Gtk, AppIndicator3, Gdk
+from gi.repository import Gtk, Gdk
 import copy
 import re
 import subprocess
@@ -55,14 +55,19 @@ class App():
         self.initialize_menu()
                 
     def initialize_indicator(self):
-        '''Setup the appindicator'''
+        '''Setup the appindicator or the Gtk.StatusIcon'''
         
-        self.indicator = AppIndicator3.Indicator.new("SSH",
-                                "gnome-netstatus-tx",
-                                AppIndicator3.IndicatorCategory.APPLICATION_STATUS)
-        self.indicator.set_label('SSH', 'SSH')
-        self.indicator.set_status(AppIndicator3.IndicatorStatus.ACTIVE)
-    
+	try:
+	    from gi.repository import AppIndicator3
+            self.indicator = AppIndicator3.Indicator.new("SSH",
+                                    "gnome-netstatus-tx",
+                                    AppIndicator3.IndicatorCategory.APPLICATION_STATUS)
+            self.indicator.set_label('SSH', 'SSH')
+            self.indicator.set_status(AppIndicator3.IndicatorStatus.ACTIVE)
+    	except:
+	    self.indicator = Indicator("SSH", "gnome-netstatus-tx")
+	    self.indicator.set_status(Indicator.STATUS_ACTIVE)
+
     def initialize_menu(self):
         '''
         Setup the main menu based on the Config object and add it to the
@@ -1265,6 +1270,33 @@ class GeoGrabber():
             else:
                 return ''
 
+
+class Indicator()
+
+    STATUS_INACTIVE = 0
+    STATUS_ACTIVE = 1
+    
+    def __init__(self, name, icon):
+        self.name = name
+        self.icon = icon
+        self.status = Indicator.STATUS_INACTIVE
+        self.status_icon = Gtk.StatusIcon()
+        self.status_icon.set_from_icon_name(self.icon)
+        self.status_icon.set_title(self.name)
+    
+    def set_icon(self, icon_name):
+        self.status_icon.set_from_icon_name(self.icon)
+    
+    def set_menu(self, menu):
+        
+        def show_menu(sender, menu):
+            menu.popup(None,None,None,0,0)
+        
+        self.menu = menu
+        self.status_icon.connect("activate", show_menu, menu)
+    
+    def set_label(self, label):
+        self.status_icon.set_title(label)
 
 if __name__ == '__main__':
     app = App()    
