@@ -32,7 +32,7 @@ import shutil
 import gconf
 import glib
 import webbrowser
-
+import time
 
 class App():
     ''' 
@@ -384,7 +384,7 @@ class HostItem(Item):
                    '--geometry', self.geometry,
                     '-x','ssh', self.ssh_params]
             
-            subprocess.Popen(cmd, shell=False,stdout=subprocess.PIPE, 
+	    subprocess.Popen(cmd, shell=False,stdout=subprocess.PIPE, 
                              stderr=subprocess.PIPE)
         
         return ssh_command
@@ -1271,32 +1271,89 @@ class GeoGrabber():
                 return ''
 
 
-class Indicator()
+class Indicator():
+    '''
+    Fallback class for linux installations that do not have python-appindicator
+    installed. Implemented as a Gtk.StatusIcon
+  
+    TODO: It would be nice to add a title to the indicator icon 
+    '''
 
     STATUS_INACTIVE = 0
     STATUS_ACTIVE = 1
     
     def __init__(self, name, icon):
+	'''
+	Takes
+	    name (str): The title/tooltip of the statusicon
+	    icon (str): The name of the system icon to use for the StatusIcon
+	'''
+
         self.name = name
         self.icon = icon
         self.status = Indicator.STATUS_INACTIVE
         self.status_icon = Gtk.StatusIcon()
         self.status_icon.set_from_icon_name(self.icon)
         self.status_icon.set_title(self.name)
+	self.status_icon.set_tooltip(self.name)
     
     def set_icon(self, icon_name):
+	'''
+	Set the icon for StatusIcon from a name
+
+        Takes
+	    icon_name (str): Name of the icon to use
+        '''
+
         self.status_icon.set_from_icon_name(self.icon)
     
     def set_menu(self, menu):
-        
-        def show_menu(sender, menu):
-            menu.popup(None,None,None,0,0)
-        
+        '''
+	Associates a menu with this Indicator class
+	
+	Takes
+	    menu (Gtk.Menu): The menu to associate with this Indicator
+	'''
+
         self.menu = menu
-        self.status_icon.connect("activate", show_menu, menu)
+        self.status_icon.connect("activate", self.show_menu)
     
     def set_label(self, label):
-        self.status_icon.set_title(label)
+        '''
+	Set the title and tooltip of this indicator
+ 
+	Takes
+	    label (str): The title and tooltip text to set
+ 	'''
+    
+	self.status_icon.set_title(label)
+	self.status_icon.set_tooltio(label)
+
+    def set_status(self, status):
+	'''
+	Set the status of the indicator
+
+	Takes
+	    status (int): Whether or not the indicator is active
+	'''
+
+	if status == Indicator.STATUS_ACTIVE or status == Indicator.STATUS_INACTIVE:
+	    self.status = status
+
+    def show_menu(self, sender):
+	'''
+	Method invoked when the user left-clicks the StatusIcon. Shows
+	The menu associated with this Indicator
+	'''
+
+	if self.menu:
+	    now = Gtk.get_current_event_time()
+	    self.menu.show_all()
+
+	    def pos(menu, icon):
+                return (Gtk.StatusIcon.position_menu(menu, icon))
+
+	    self.menu.popup(None, None, pos, self.status_icon, 0, now)
 
 if __name__ == '__main__':
     app = App()    
