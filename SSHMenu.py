@@ -96,10 +96,11 @@ class App():
             gtk_item = Gtk.MenuItem(menu_item.display)
             gtk_item.set_submenu(new_menu)
             
-            self.add_options_from_preferences(menu_item)
+            if len(menu_item.items) > 0:
+	        self.add_options_from_preferences(menu_item)
                        
-            for item in menu_item.items:
-                self.add_item(new_menu, item)
+                for item in menu_item.items:
+                    self.add_item(new_menu, item)
             
             self.menus.append(menu_item)
         else:
