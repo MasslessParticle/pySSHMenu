@@ -24,8 +24,8 @@ connections.  Select a host from the menu and up pops a new terminal window
 containing an SSH session to the selected host.
 
 pySSHMenu is a port of SSHMenu to Python and Gtk 3 that runs as an
-AppIndicator rather than as an applet. pySSHMenu reads and writes your old
-SSHMenu configuration files to make transitioning easy.
+AppIndicator or StatusIcon rather than as an applet. pySSHMenu reads and 
+writes your old SSHMenu configuration files to make transitioning easy.
 
 
 Differences Between pySSHMenu and SSHMenu
