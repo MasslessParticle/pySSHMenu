@@ -1293,8 +1293,7 @@ class Indicator():
         self.status = Indicator.STATUS_INACTIVE
         self.status_icon = Gtk.StatusIcon()
         self.status_icon.set_from_icon_name(self.icon)
-        self.status_icon.set_title(self.name)
-	self.status_icon.set_tooltip(self.name)
+	self.set_label(self.name)
     
     def set_icon(self, icon_name):
 	'''
@@ -1326,7 +1325,8 @@ class Indicator():
  	'''
     
 	self.status_icon.set_title(label)
-	self.status_icon.set_tooltio(label)
+	self.status_icon.set_has_tooltip(True)
+	self.status_icon.set_tooltip_text(label)
 
     def set_status(self, status):
 	'''
