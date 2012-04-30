@@ -61,9 +61,9 @@ Installation
 ------------------------------------------------------------------------------
 1. Install PyYaml if it's not already
 
-2. Download SSHMenu
+2. Download SSHMenu.py
 
-3. Copy SSHMenu to `/usr/local/bin/`
+3. Copy SSHMenu.py to `/usr/local/bin/SSHMenu`
 
 4. `chmod 755`
 
