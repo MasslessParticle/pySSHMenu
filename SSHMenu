@@ -32,7 +32,6 @@ import shutil
 import gconf
 import glib
 import webbrowser
-import time
 
 class App():
     ''' 
