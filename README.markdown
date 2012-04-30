@@ -61,12 +61,12 @@ Installation
 ------------------------------------------------------------------------------
 1. Install PyYaml if it's not already
 
-2. Download App.py
+2. Download SSHMenu
 
-3. Copy App.py to `/usr/local/bin/`
+3. Copy SSHMenu to `/usr/local/bin/`
 
 4. `chmod 755`
 
-5. Launch App.py
+5. Launch SSHMenu
 
 6. _Optional:_ add it to the Gnome startup so it starts on login
