@@ -382,7 +382,7 @@ class HostItem(Item):
                    '--title', self.display, 
                    '--profile', self.profile,
                    '--geometry', self.geometry,
-                    '-x','ssh', self.ssh_params]
+                    '-e','ssh ' + self.ssh_params]
             
 	    subprocess.Popen(cmd, shell=False,stdout=subprocess.PIPE, 
                              stderr=subprocess.PIPE)
