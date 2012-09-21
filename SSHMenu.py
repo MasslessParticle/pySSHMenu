@@ -1133,7 +1133,11 @@ class HostDialog():
         for name in prof_names:
             self.profile_entry.append_text(name)
         
-        self.profile_entry.set_active(0)
+	index = 0 
+	if self.host.profile != '' and self.host.profile != "< None> ":
+		index = prof_names.index(self.host.profile) + 1
+
+        self.profile_entry.set_active(index)
         self.add_input('Profile', widget=self.profile_entry)
     
     def add_other_inputs(self):
