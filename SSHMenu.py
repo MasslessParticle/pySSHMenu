@@ -367,8 +367,7 @@ class HostItem(Item):
             params = {'profile' : '',
                       'geometry' : '',
                       'sshparams' : ''}
-            
-        self.profile = params['profile']
+        self.profile = getattr(params, 'profile', '')
         self.geometry = params['geometry']
         self.ssh_params = params['sshparams'] 
         self.enable_bcvi = False
@@ -380,10 +379,10 @@ class HostItem(Item):
         def ssh_command(sender, item):
             cmd = ['gnome-terminal',
                    '--title', self.display, 
-                   '--profile', self.profile,
                    '--geometry', self.geometry,
                     '-e','ssh ' + self.ssh_params]
-            
+            if self.profile and (self.profile != "< None> "):
+                cmd += ['--profile', self.profile]
 	    subprocess.Popen(cmd, shell=False,stdout=subprocess.PIPE, 
                              stderr=subprocess.PIPE)
         
