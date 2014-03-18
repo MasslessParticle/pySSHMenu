@@ -368,7 +368,7 @@ class HostItem(Item):
                       'geometry' : '',
                       'sshparams' : ''}
         self.profile = getattr(params, 'profile', '')
-        self.geometry = params['geometry']
+        self.geometry = getattr(params, 'geometry', '')
         self.ssh_params = params['sshparams'] 
         self.enable_bcvi = False
         self.action = self.create_action()
