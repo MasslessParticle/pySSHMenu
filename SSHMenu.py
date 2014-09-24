@@ -22,7 +22,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from gi.repository import Gtk, Gdk
+from gi.repository import Gtk, Gdk, GLib
 import copy
 import re
 import subprocess
@@ -30,7 +30,6 @@ import os
 import yaml
 import shutil
 import gconf
-import glib
 import webbrowser
 
 class App():
@@ -717,7 +716,7 @@ class PreferencesDialog():
         self.view.set_rules_hint(False)
         self.view.set_search_column(0)
 
-        if glib.glib_version >= (1, 19, 0): #@UndefinedVariable
+        if GLib.glib_version >= (1, 19, 0): #@UndefinedVariable
             self.view.set_reorderable(True)
 
         renderer = Gtk.CellRendererText()
