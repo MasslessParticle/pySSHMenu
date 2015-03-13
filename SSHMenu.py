@@ -22,14 +22,13 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from gi.repository import Gtk, Gdk, GLib
+from gi.repository import Gtk, Gdk, GLib, GConf
 import copy
 import re
 import subprocess
 import os
 import yaml
 import shutil
-import gconf
 import webbrowser
 
 class App():
@@ -1120,7 +1119,7 @@ class HostDialog():
     def add_profile_input(self):
         '''Add a 'profile' combobox input to the HostDialog'''
 
-        client = gconf.client_get_default()
+        client = GConf.client_get_default()
         list_key = '/apps/gnome-terminal/global/profile_list'
         name_key = '/apps/gnome-terminal/profiles/%s/visible_name'
         prof_names = [client.get_string(name_key % name) for name in
